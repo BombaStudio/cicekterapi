@@ -5,8 +5,8 @@ import { useApp } from '@/hooks/use-app';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Send, Bot, User } from 'lucide-react';
+import { Avatar } from '@/components/ui/avatar';
+import { Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { psychologicalSupportAssistant } from '@/ai/flows/psychological-support-assistant';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,16 +17,10 @@ type Message = {
 };
 
 export default function DashboardPage() {
-  const { surveyData, translations } = useApp();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { surveyData, translations, chatHistory, addChatMessage } = useApp();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Start with a welcoming message from the AI
-    setMessages([{ sender: 'ai', text: translations.chatWelcome }]);
-  }, [translations.chatWelcome]);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -35,19 +29,21 @@ export default function DashboardPage() {
         behavior: 'smooth',
       });
     }
-  }, [messages]);
+  }, [chatHistory]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const newUserMessage: Message = { sender: 'user', text: input };
-    setMessages(prev => [...prev, newUserMessage]);
+    const userMessage: Message = { sender: 'user', text: input };
+    
+    await addChatMessage(userMessage);
+
     setInput('');
     setIsLoading(true);
 
     try {
-      const conversationHistory = [...messages, newUserMessage]
+      const conversationHistory = [...chatHistory, userMessage]
         .map(msg => `${msg.sender}: ${msg.text}`)
         .join('\n');
       
@@ -60,11 +56,13 @@ export default function DashboardPage() {
       });
       
       if (response && response.aiResponse) {
-        setMessages(prev => [...prev, { sender: 'ai', text: response.aiResponse }]);
+        const aiMessage: Message = { sender: 'ai', text: response.aiResponse };
+        await addChatMessage(aiMessage);
       }
     } catch (error) {
       console.error("Error with AI assistant:", error);
-      setMessages(prev => [...prev, { sender: 'ai', text: "Sorry, I'm having some trouble right now. Please try again later." }]);
+      const errorMessage: Message = { sender: 'ai', text: "Sorry, I'm having some trouble right now. Please try again later." };
+      await addChatMessage(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -75,16 +73,16 @@ export default function DashboardPage() {
       <div className="flex-1 flex flex-col bg-card/50 border rounded-xl shadow-sm overflow-hidden">
         <ScrollArea className="flex-1 p-4 md:p-6" ref={scrollAreaRef}>
           <div className="space-y-6">
-            {messages.map((message, index) => (
+            {chatHistory.map((message, index) => (
               <div
                 key={index}
                 className={cn('flex items-start gap-4', { 'justify-end': message.sender === 'user' })}
               >
                 {message.sender === 'ai' && (
                   <Avatar className="border-2 border-primary/50">
-                    <AvatarFallback>
+                    <div className="flex h-full w-full items-center justify-center rounded-full bg-muted">
                       <Bot />
-                    </AvatarFallback>
+                    </div>
                   </Avatar>
                 )}
                 <div
@@ -99,9 +97,9 @@ export default function DashboardPage() {
                 </div>
                 {message.sender === 'user' && (
                   <Avatar className="border-2 border-accent/50">
-                    <AvatarFallback>
+                    <div className="flex h-full w-full items-center justify-center rounded-full bg-muted">
                       <User />
-                    </AvatarFallback>
+                    </div>
                   </Avatar>
                 )}
               </div>
@@ -109,9 +107,9 @@ export default function DashboardPage() {
             {isLoading && (
               <div className="flex items-start gap-4">
                  <Avatar className="border-2 border-primary/50">
-                    <AvatarFallback>
+                    <div className="flex h-full w-full items-center justify-center rounded-full bg-muted">
                       <Bot />
-                    </AvatarFallback>
+                    </div>
                   </Avatar>
                   <div className="max-w-md rounded-2xl px-4 py-3 space-y-2">
                     <Skeleton className="h-4 w-48" />
@@ -132,7 +130,7 @@ export default function DashboardPage() {
               autoComplete="off"
             />
             <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
-              <Send className="h-4 w-4" />
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
               <span className="sr-only">{translations.chatSend}</span>
             </Button>
           </form>

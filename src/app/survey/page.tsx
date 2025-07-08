@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useApp } from '@/hooks/use-app';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,8 +12,7 @@ import { Logo } from '@/components/Logo';
 
 export default function SurveyPage() {
   const { completeSurvey, translations } = useApp();
-  const router = useRouter();
-
+  const [isLoading, setIsLoading] = useState(false);
   const [healthStatus, setHealthStatus] = useState('');
   const [dailyChallenges, setDailyChallenges] = useState<string[]>([]);
   const [helpBarriers, setHelpBarriers] = useState<string[]>([]);
@@ -32,15 +30,17 @@ export default function SurveyPage() {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     const surveyData = {
       healthStatus,
-      dailyChallenges,
-      helpBarriers,
+      dailyChallenges: dailyChallenges.join(', '),
+      helpBarriers: helpBarriers.join(', '),
       additionalInfo
     };
-    completeSurvey(surveyData);
+    await completeSurvey(surveyData);
+    setIsLoading(false);
   };
 
   return (
@@ -104,8 +104,8 @@ export default function SurveyPage() {
               />
             </div>
 
-            <Button type="submit" className="w-full" size="lg" disabled={!healthStatus}>
-              {translations.survey.submit}
+            <Button type="submit" className="w-full" size="lg" disabled={!healthStatus || isLoading}>
+              {isLoading ? 'Gönderiliyor...' : translations.survey.submit}
             </Button>
           </form>
         </CardContent>
