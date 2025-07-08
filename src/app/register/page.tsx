@@ -11,7 +11,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const { login, translations, isAuthenticated, isSurveyCompleted } = useApp();
   const router = useRouter();
 
@@ -35,7 +35,7 @@ export default function LoginPage() {
         <Card className="w-full max-w-md shadow-lg border-2">
           <CardHeader className="text-center">
             <Logo className="mx-auto mb-2" />
-            <CardTitle className="font-headline text-2xl tracking-tight">{translations.login}</CardTitle>
+            <CardTitle className="font-headline text-2xl tracking-tight">{translations.register}</CardTitle>
             <CardDescription>{translations.tagline}</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
@@ -50,11 +50,11 @@ export default function LoginPage() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
-              <Button type="submit" className="w-full">{translations.login}</Button>
+              <Button type="submit" className="w-full">{translations.createAccount}</Button>
               <div className="text-center text-sm text-muted-foreground">
-                {translations.newHere}{' '}
-                <Link href="/register" className="font-medium text-primary hover:underline">
-                  {translations.createAccount}
+                {translations.alreadyHaveAccount}{' '}
+                <Link href="/" className="font-medium text-primary hover:underline">
+                  {translations.login}
                 </Link>
               </div>
             </CardFooter>
