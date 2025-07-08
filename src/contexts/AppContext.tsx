@@ -54,6 +54,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const translations = locales[lang];
 
   useEffect(() => {
     const storedLang = localStorage.getItem('cicek_terapi_lang') as Language;
@@ -169,7 +170,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = {
     lang,
     setLang: handleSetLang,
-    translations: locales[lang],
+    translations,
     user,
     isAuthenticated: !!user,
     isSurveyCompleted,
